@@ -45,11 +45,15 @@ def value_iteration(r):
                     total_expected_reward = 0
                     # Intended direction
                     new_i, new_j = get_new_state(i, j, action)
+                    if i == new_i and j == new_j:
+                        continue
                     total_expected_reward += p_correct * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
                     # Right angles to the intended direction
                     for side_action in (
                     actions[(actions.index(action) + 1) % 4], actions[(actions.index(action) - 1) % 4]):
                         new_i, new_j = get_new_state(i, j, side_action)
+                        if i == new_i and j == new_j:
+                            continue
                         total_expected_reward += p_wrong * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
 
                     max_value = max(total_expected_reward, max_value)
@@ -72,11 +76,15 @@ def value_iteration(r):
                 total_expected_reward = 0
                 # Intended direction
                 new_i, new_j = get_new_state(i, j, action)
+                if i == new_i and j == new_j:
+                    continue
                 total_expected_reward += p_correct * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
 
                 # Right angles to the intended direction
                 for side_action in (actions[(actions.index(action) + 1) % 4], actions[(actions.index(action) - 1) % 4]):
                     new_i, new_j = get_new_state(i, j, side_action)
+                    if i == new_i and j == new_j:
+                        continue
                     total_expected_reward += p_wrong * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
 
                 if total_expected_reward > max_value:
