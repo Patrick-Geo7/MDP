@@ -143,7 +143,7 @@ def policy_improvement(V, policy, rewards):
 
 def policy_iteration(r):
     rewards = np.array([[r, -1, 10], [-1, -1, -1], [-1, -1, -1]])
-    V = np.zeros((n_rows, n_cols))
+    V = np.array([[r, 0, 10], [0, 0, 0], [0, 0, 0]])
     # Random initial policy
     policy = np.empty((n_rows, n_cols), dtype='U10')
     for i in range(n_rows):
