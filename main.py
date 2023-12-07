@@ -9,6 +9,24 @@ p_wrong = 0.1  # probability it moves at right angles to the intended direction
 gamma = 0.99  # Discount factor
 
 
+def calculate_state_value(i, j, action, V, rewards):
+    # Calculate value for moving in intended direction
+    new_i, new_j = get_new_state(i, j, action)
+
+    value = p_correct * (rewards[new_i, new_j] + gamma * V[new_i, new_j])
+
+    if i == new_i and j == new_j:
+        value = 0
+    # Calculate value for moving at right angles
+    for side_action in [actions[(actions.index(action) - 1) % 4], actions[(actions.index(action) + 1) % 4]]:
+        side_i, side_j = get_new_state(i, j, side_action)
+        if i == side_i and j == side_j:
+            continue
+        value += p_wrong * (rewards[side_i, side_j] + gamma * V[side_i, side_j])
+
+    return value
+
+
 def get_new_state(i, j, action):
     if action == 'Up':
         return max(i - 1, 0), j
@@ -47,15 +65,7 @@ def value_iteration(r):
                     new_i, new_j = get_new_state(i, j, action)
                     if i == new_i and j == new_j:
                         continue
-                    total_expected_reward += p_correct * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
-                    # Right angles to the intended direction
-                    for side_action in (
-                            actions[(actions.index(action) + 1) % 4], actions[(actions.index(action) - 1) % 4]):
-                        new_i, new_j = get_new_state(i, j, side_action)
-                        if i == new_i and j == new_j:
-                            continue
-                        total_expected_reward += p_wrong * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
-
+                    total_expected_reward += calculate_state_value(i, j, action, V, rewards)
                     max_value = max(total_expected_reward, max_value)
 
                 V[i][j] = max_value
@@ -78,15 +88,7 @@ def value_iteration(r):
                 new_i, new_j = get_new_state(i, j, action)
                 if i == new_i and j == new_j:
                     continue
-                total_expected_reward += p_correct * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
-
-                # Right angles to the intended direction
-                for side_action in (actions[(actions.index(action) + 1) % 4], actions[(actions.index(action) - 1) % 4]):
-                    new_i, new_j = get_new_state(i, j, side_action)
-                    if i == new_i and j == new_j:
-                        continue
-                    total_expected_reward += p_wrong * (rewards[new_i][new_j] + gamma * V[new_i][new_j])
-
+                total_expected_reward += calculate_state_value(i, j, action, V, rewards)
                 if total_expected_reward > max_value:
                     max_value = total_expected_reward
                     policy[i][j] = action
@@ -96,22 +98,6 @@ def value_iteration(r):
 
 r_values = [100, 3, 0, -3]
 
-def calculate_state_value(i, j, action, V, rewards):
-    # Calculate value for moving in intended direction
-    new_i, new_j = get_new_state(i, j, action)
-
-    value = p_correct * (rewards[new_i, new_j] + gamma * V[new_i, new_j])
-
-    if i == new_i and j == new_j:
-        value = 0
-    # Calculate value for moving at right angles
-    for side_action in [actions[(actions.index(action) - 1) % 4], actions[(actions.index(action) + 1) % 4]]:
-        side_i, side_j = get_new_state(i, j, side_action)
-        if i == side_i and j == side_j:
-            continue
-        value += p_wrong * (rewards[side_i, side_j] + gamma * V[side_i, side_j])
-
-    return value
 
 def policy_evaluation(policy, V, rewards):
     epsilon = 1e-6
