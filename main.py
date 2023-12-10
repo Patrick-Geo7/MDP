@@ -47,9 +47,10 @@ def value_iteration(r):
     V[0, 2] = 10
 
     epsilon = 1e-6  # Convergence threshold
-
+    k = 0
     while True:
         delta = 0
+        k += 1
         for i in range(n_rows):
             for j in range(n_cols):
                 # Skip terminal states
@@ -61,14 +62,10 @@ def value_iteration(r):
 
                 for action in actions:
                     total_expected_reward = 0
-                    # Intended direction
-                    new_i, new_j = get_new_state(i, j, action)
-                    if i == new_i and j == new_j:
-                        continue
                     total_expected_reward += calculate_state_value(i, j, action, V, rewards)
                     max_value = max(total_expected_reward, max_value)
 
-                V[i][j] = max_value
+                V[i, j] = max_value
                 delta = max(delta, np.abs(v - V[i][j]))
 
         if delta < epsilon:
@@ -83,20 +80,13 @@ def value_iteration(r):
 
             max_value = -np.inf
             for action in actions:
-                total_expected_reward = 0
-                # Intended direction
-                new_i, new_j = get_new_state(i, j, action)
-                if i == new_i and j == new_j:
-                    continue
-                total_expected_reward += calculate_state_value(i, j, action, V, rewards)
+                total_expected_reward = calculate_state_value(i, j, action, V, rewards)
+
                 if total_expected_reward > max_value:
                     max_value = total_expected_reward
                     policy[i][j] = action
 
-    return V, policy
-
-
-r_values = [100, 3, 0, -3]
+    return V, policy, k
 
 
 def policy_evaluation(policy, V, rewards):
@@ -143,7 +133,9 @@ def policy_improvement(V, policy, rewards):
 
 def policy_iteration(r):
     rewards = np.array([[r, -1, 10], [-1, -1, -1], [-1, -1, -1]])
-    V = np.array([[r, 0, 10], [0, 0, 0], [0, 0, 0]])
+    V = np.zeros((n_rows, n_cols))
+    V[0, 0] = r
+    V[0, 2] = 10
     # Random initial policy
     policy = np.empty((n_rows, n_cols), dtype='U10')
     for i in range(n_rows):
@@ -154,28 +146,32 @@ def policy_iteration(r):
                 policy[i][j] = np.random.choice(actions)
     policy[0][0], policy[0][2] = "Terminal", "Terminal"
 
+    k = 0
     while True:
+        k += 1
         V = policy_evaluation(policy, V, rewards)
         policy, policy_stable = policy_improvement(V, policy, rewards)
         if policy_stable:
             break
 
-    return V, policy
+    return V, policy, k
 
 
 r_values = [100, 3, 0, -3]
 
 for r in r_values:
-    V, policy = value_iteration(r)
+    V, policy, iterationCount = value_iteration(r)
     print("//////////  Value     //////////////")
     print(f"Value function for r = {r}:")
     print(V)
     print(f"Policy for r = {r}:")
     print(policy)
+    print(f"Converged in {iterationCount} iterations")
     print("//////////   POLICY  //////////\n")
-    V, policy = policy_iteration(r)
+    V, policy, iterationCount = policy_iteration(r)
     print(f"Value function for r = {r}:")
     print(V)
     print(f"Policy for r = {r}:")
     print(policy)
+    print(f"Converged in {iterationCount} iterations")
     print("////////////////////////////////////////////////////////////////////////////\n")
