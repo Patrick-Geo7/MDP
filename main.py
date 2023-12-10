@@ -8,6 +8,7 @@ p_wrong = 0.1  # probability it moves at right angles to the intended direction
 
 gamma = 0.99  # Discount factor
 
+r_values = [100, 3, 0, -3]
 
 def calculate_state_value(i, j, action, V, rewards):
     # Calculate value for moving in intended direction
@@ -157,17 +158,15 @@ def policy_iteration(r):
     return V, policy, k
 
 
-r_values = [100, 3, 0, -3]
-
 for r in r_values:
     V, policy, iterationCount = value_iteration(r)
-    print("//////////  Value     //////////////")
+    print("//////////     Value     //////////////")
     print(f"Value function for r = {r}:")
     print(V)
     print(f"Policy for r = {r}:")
     print(policy)
     print(f"Converged in {iterationCount} iterations")
-    print("//////////   POLICY  //////////\n")
+    print("//////////     POLICY     //////////\n")
     V, policy, iterationCount = policy_iteration(r)
     print(f"Value function for r = {r}:")
     print(V)
