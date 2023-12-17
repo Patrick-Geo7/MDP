@@ -1,7 +1,7 @@
 import numpy as np
 
 n_rows, n_cols = 3, 3
-actions = ['Up', 'Down', 'Right', 'Left']
+actions = ['Up', 'Right', 'Down', 'Left']
 
 p_correct = 0.8  # probability that the agent goes in the direction it selects
 p_wrong = 0.1  # probability it moves at right angles to the intended direction
@@ -38,34 +38,37 @@ def get_new_state(i, j, action):
 
 def value_iteration(r):
     rewards = np.array([[r, -1, 10], [-1, -1, -1], [-1, -1, -1]])
-    V = np.zeros((n_rows, n_cols))
+    prev_V = np.zeros((n_rows, n_cols))
 
     # Terminal states' values are equal to their immediate rewards.
-    V[0, 0] = r
-    V[0, 2] = 10
+    # prev_V[0, 0] = r
+    # prev_V[0, 2] = 10
 
     epsilon = 1e-6  # Convergence threshold
     k = 0
     while True:
         delta = 0
         k += 1
+        V = np.zeros((n_rows, n_cols))
+        # V[0, 0] = r
+        # V[0, 2] = 10
         for i in range(n_rows):
             for j in range(n_cols):
                 # Skip terminal states
                 if (i == 0 and j == 0) or (i == 0 and j == 2):
                     continue
 
-                v = V[i, j]
                 max_value = -np.inf
 
                 for action in actions:
                     total_expected_reward = 0
-                    total_expected_reward += calculate_state_value(i, j, action, V, rewards)
+                    total_expected_reward += calculate_state_value(i, j, action, prev_V, rewards)
                     max_value = max(total_expected_reward, max_value)
 
                 V[i, j] = max_value
-                delta = max(delta, np.abs(v - V[i][j]))
+                delta = max(delta, np.abs(prev_V[i][j] - V[i][j]))
 
+        prev_V = V
         if delta < epsilon:
             break
 
@@ -78,13 +81,13 @@ def value_iteration(r):
 
             max_value = -np.inf
             for action in actions:
-                total_expected_reward = calculate_state_value(i, j, action, V, rewards)
+                total_expected_reward = calculate_state_value(i, j, action, prev_V, rewards)
 
                 if total_expected_reward > max_value:
                     max_value = total_expected_reward
                     policy[i][j] = action
 
-    return V, policy, k
+    return prev_V, policy, k
 
 
 def policy_evaluation(policy, V, rewards):
