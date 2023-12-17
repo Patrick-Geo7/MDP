@@ -10,19 +10,16 @@ gamma = 0.99  # Discount factor
 
 r_values = [100, 3, 0, -3]
 
+
 def calculate_state_value(i, j, action, V, rewards):
     # Calculate value for moving in intended direction
     new_i, new_j = get_new_state(i, j, action)
 
     value = p_correct * (rewards[new_i, new_j] + gamma * V[new_i, new_j])
 
-    if i == new_i and j == new_j:
-        value = 0
     # Calculate value for moving at right angles
     for side_action in [actions[(actions.index(action) - 1) % 4], actions[(actions.index(action) + 1) % 4]]:
         side_i, side_j = get_new_state(i, j, side_action)
-        if i == side_i and j == side_j:
-            continue
         value += p_wrong * (rewards[side_i, side_j] + gamma * V[side_i, side_j])
 
     return value
