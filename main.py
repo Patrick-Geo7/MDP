@@ -40,26 +40,19 @@ def value_iteration(r):
     rewards = np.array([[r, -1, 10], [-1, -1, -1], [-1, -1, -1]])
     prev_V = np.zeros((n_rows, n_cols))
 
-    # Terminal states' values are equal to their immediate rewards.
-    # prev_V[0, 0] = r
-    # prev_V[0, 2] = 10
-
     epsilon = 1e-6  # Convergence threshold
     k = 0
     while True:
         delta = 0
         k += 1
         V = np.zeros((n_rows, n_cols))
-        # V[0, 0] = r
-        # V[0, 2] = 10
+
         for i in range(n_rows):
             for j in range(n_cols):
-                # Skip terminal states
-                if (i == 0 and j == 0) or (i == 0 and j == 2):
+                if (i == 0 and j == 0) or (i == 0 and j == 2):  # Skip terminal states
                     continue
 
                 max_value = -np.inf
-
                 for action in actions:
                     total_expected_reward = 0
                     total_expected_reward += calculate_state_value(i, j, action, prev_V, rewards)
@@ -72,7 +65,9 @@ def value_iteration(r):
         if delta < epsilon:
             break
 
-    policy = np.zeros((n_rows, n_cols), dtype=object)
+    policy = np.empty((n_rows, n_cols), dtype='U10')
+    prev_V[0, 0] = r
+    prev_V[0, 2] = 10
     for i in range(n_rows):
         for j in range(n_cols):
             if (i == 0 and j == 0) or (i == 0 and j == 2):
@@ -91,34 +86,30 @@ def value_iteration(r):
 
 
 def policy_evaluation(policy, V, rewards):
+    prev_V = V.copy()
     epsilon = 1e-6
     while True:
         delta = 0
         for i in range(n_rows):
             for j in range(n_cols):
-                if policy[i][j] == 'Terminal':
+                if policy[i][j] == 'Terminal':  # Skip terminal states
                     continue
-                v = V[i, j]
-
                 # Get the action suggested by the current policy
                 action = policy[i][j]
-                new_value = 0
+                V[i][j] = calculate_state_value(i, j, action, prev_V, rewards)
+                delta = max(delta, abs(prev_V[i][j] - V[i][j]))
 
-                new_value += calculate_state_value(i, j, action, V, rewards)
-
-                V[i][j] = new_value
-                delta = max(delta, abs(v - V[i][j]))
-
+        prev_V = V
         if delta < epsilon:
             break
-    return V
+    return prev_V
 
 
 def policy_improvement(V, policy, rewards):
     policy_stable = True
     for i in range(n_rows):
         for j in range(n_cols):
-            if policy[i][j] == 'Terminal':
+            if policy[i][j] == 'Terminal':  # Skip terminal states
                 continue
             old_action = policy[i][j]
             max_value = -np.inf
@@ -135,8 +126,6 @@ def policy_improvement(V, policy, rewards):
 def policy_iteration(r):
     rewards = np.array([[r, -1, 10], [-1, -1, -1], [-1, -1, -1]])
     V = np.zeros((n_rows, n_cols))
-    V[0, 0] = r
-    V[0, 2] = 10
     # Random initial policy
     policy = np.empty((n_rows, n_cols), dtype='U10')
     for i in range(n_rows):
@@ -145,7 +134,6 @@ def policy_iteration(r):
                 policy[i][j] = 'Terminal'
             else:
                 policy[i][j] = np.random.choice(actions)
-    policy[0][0], policy[0][2] = "Terminal", "Terminal"
 
     k = 0
     while True:
@@ -154,23 +142,24 @@ def policy_iteration(r):
         policy, policy_stable = policy_improvement(V, policy, rewards)
         if policy_stable:
             break
-
+    V[0, 0] = r
+    V[0, 2] = 10
     return V, policy, k
 
 
 for r in r_values:
     V, policy, iterationCount = value_iteration(r)
-    print("//////////     Value     //////////////")
-    print(f"Value function for r = {r}:")
-    print(V)
-    print(f"Policy for r = {r}:")
+    print("//////////     VALUE     ////////////")
+    # print(f"Value function for r = {r}:")
+    # print(V)
+    print(f"Policy using Value Iteration for r = {r}:")
     print(policy)
     print(f"Converged in {iterationCount} iterations")
-    print("//////////     POLICY     //////////\n")
+    print("//////////     POLICY     //////////")
     V, policy, iterationCount = policy_iteration(r)
-    print(f"Value function for r = {r}:")
-    print(V)
-    print(f"Policy for r = {r}:")
+    # print(f"Value function for r = {r}:")
+    # print(V)
+    print(f"Policy using Policy Iteration for r = {r}:")
     print(policy)
-    print(f"Converged in {iterationCount} iterations")
+    print(f"Converged in {iterationCount} iterations\n")
     print("////////////////////////////////////////////////////////////////////////////\n")
